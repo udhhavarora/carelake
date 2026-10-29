@@ -15,3 +15,5 @@ data/*.duckdb*
 dbt/.user.yml
 .venv-airflow/
 .airflow/
+.coverage
+htmlcov/

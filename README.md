@@ -1,9 +1,39 @@
 # CareLake
 
-Synthetic healthcare data platform: Python → S3 → Snowflake → dbt → Airflow.
-Work in progress; status below is what has actually been run.
+A healthcare analytics data platform built on **synthetic data**: simulated hospital source files are
+ingested, validated, modelled and quality-gated before anything is published. It is a portfolio
+project for learning a modern stack (AWS S3, Snowflake, dbt, Airflow); the parts that run today run
+locally, and the cloud parts are written but **not yet executed** (see Status).
 
-See [`docs/`](docs/): architecture, data dictionary, design decisions, setup guide, troubleshooting, demo walkthrough.
+**Business problem it simulates:** hospital operations teams need trustworthy admissions, length-of-stay
+and 30-day readmission figures, but source feeds arrive with duplicates, late and corrected records,
+invalid codes, orphaned references and changing schemas. CareLake shows how to catch those problems,
+keep rejected records visible, and refuse to publish when critical checks fail.
+
+```mermaid
+flowchart LR
+    G[Generate] --> I[Ingest + quarantine] --> L[Raw load] --> D[dbt models] --> Q{DQ gate}
+    Q -- pass --> P[Publish]
+    Q -- fail --> X[Blocked]
+    I -. not run .-> S3[(S3)] -.-> SF[(Snowflake)] -.-> D
+```
+Solid = built and run locally. Dashed = written, never executed. Full detail: [docs/architecture.md](docs/architecture.md).
+
+## Stack and why
+| Tool | Role | Why |
+|---|---|---|
+| Python (stdlib-first) | generation, ingestion, DQ checks | few dependencies, easy to test |
+| DuckDB | local stand-in warehouse | lets dbt and CI run free while no Snowflake account exists |
+| dbt Core | staging, dimensional model, marts, tests | lineage, tests and docs as code |
+| Airflow 3 | orchestration | retries, dependencies, run history; DQ failure blocks publish |
+| GitHub Actions | CI | lint, tests, full DuckDB pipeline, no secrets |
+| Snowflake, S3 | target platform | code and SQL written, not run |
+
+## Results (all from real local runs, default seed)
+- **Tests:** 20 pass (`pytest`), 92% line coverage; `ruff` clean. Only the Snowflake runner is untested, because it needs an account.
+- **dbt:** `build` PASS=43, WARN=1, ERROR=0. The warning is the injected orphan encounter.
+- **DQ gate:** 38 checks, 37 pass, 1 expected warning, decision PUBLISH. On deliberately corrupted data: 3 critical failures, BLOCKED, exit code 2.
+- **Airflow (`dags test`):** normal run, repeat run with no new rows, a retried simulated failure, a DQ block, and a repair. See [docs/demo_walkthrough.md](docs/demo_walkthrough.md).
 
 ## Status
 
@@ -14,10 +44,10 @@ See [`docs/`](docs/): architecture, data dictionary, design decisions, setup gui
 | Local raw loader (DuckDB, append-only, file-level idempotent) | Implemented, unit-tested locally |
 | dbt project (6 staging views, 3 dims, 1 fact, orphan quarantine, 2 marts) on DuckDB | `dbt build`: PASS=43 WARN=1 ERROR=0 |
 | dbt on Snowflake (`snowflake` target in `dbt/profiles.yml`) | Written, **never executed** |
-| DQ framework (38 checks, JSON report, publish gate) | Implemented; unit-tested (4 tests) and run on local data |
+| DQ framework (38 checks, JSON report, publish gate) | Implemented; unit-tested and run on local data; gate pass and block covered by an end-to-end test |
 | GitHub Actions workflow (lint, tests, DuckDB pipeline) | Written; **never run on GitHub** (no remote yet). Its script was run locally |
 | Airflow 3.3.2 DAG (retries, DQ gate, as-of backfill, run log) | Run locally via `airflow dags test`; no scheduler/UI/Docker run |
-| S3 upload (dry run default), Snowflake RAW DDL/COPY/MERGE renderer, bootstrap SQL | Written; offline-tested only (15 tests total). **Never run against AWS or Snowflake; Snowflake syntax not checked against docs** |
+| S3 upload (dry run default), Snowflake RAW DDL/COPY/MERGE renderer, bootstrap SQL | Written; offline-tested only. **Never run against AWS or Snowflake; Snowflake syntax not checked against docs** |
 
 No cloud integration has been executed.
 
@@ -112,3 +142,16 @@ column. Ground truth is written to `anomalies.json`. Row-level defects are quara
 ingestion; the orphan reference is a cross-table check left to the warehouse/dbt layer.
 
 All data is synthetic and FHIR-inspired only, not FHIR conformant.
+
+## Security and cost
+- No credentials, keys or real patient data in the repo or its git history (scanned). `.env.example` holds placeholders; `.env`, keys, DuckDB files and generated data are git-ignored.
+- CI needs no secrets. Cloud steps are opt-in (`--execute`); everything defaults to dry run.
+- Planned least-privilege IAM and Snowflake roles: [docs/aws_iam.md](docs/aws_iam.md), [snowflake/00_account_setup.sql](snowflake/00_account_setup.sql). Not applied.
+- Cost controls designed for Snowflake: XSMALL warehouse, 60 s auto-suspend, resource monitor with a credit quota. Nothing has been provisioned and no charges have been incurred.
+
+## Limitations and next steps
+- Snowflake and S3 code has never run; Snowflake SQL was written from memory without checking the docs and will need fixes on first execution. Some DuckDB-specific functions in the dbt models need porting.
+- CI workflow has not run on GitHub yet; Airflow was exercised with `dags test`, not the scheduler or UI.
+- Synthetic data is simplistic (departments independent of encounter class, random re-visits), so the metrics prove the logic, not clinical reality. Not FHIR conformant.
+- Dimensions keep only the current version (no history/SCD2); no incremental dbt models because data volume does not justify them.
+- Next: run the cloud stages with a real account, add a GitHub remote, then optionally a read-only AI assistant over run logs and DQ reports.
