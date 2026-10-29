@@ -35,8 +35,18 @@ export AIRFLOW_HOME=$PWD/.airflow AIRFLOW__CORE__LOAD_EXAMPLES=False AIRFLOW__CO
 ```
 Each attempt is recorded in `data/runs/run_log.jsonl`. The scheduler and UI were not exercised.
 
-## C. AWS and Snowflake (NOT IMPLEMENTED)
-Planned, untested. Before building them the project needs your decisions on: AWS region and bucket
-name; a Snowflake account (a trial is not assumed); and acceptance of costs. The intended cost
-controls are an XSMALL warehouse with `AUTO_SUSPEND = 60`, a resource monitor, and no resources
-created without explicit confirmation. Never commit credentials; `.env.example` holds placeholders only.
+## C. AWS and Snowflake (code written, NEVER EXECUTED)
+Dry runs work without any account and print what would happen:
+```bash
+python -m carelake.cli s3-upload        # plan only
+python -m carelake.cli snowflake-sql    # prints the RAW-layer SQL
+```
+Before using `--execute` you must decide and do the following yourself:
+1. Create a bucket and IAM policies per [aws_iam.md](aws_iam.md); set `CARELAKE_S3_BUCKET` (and region).
+2. Obtain a Snowflake account (a trial is not assumed). Review and run `snowflake/00_account_setup.sql`
+   (set a small `<CREDIT_QUOTA>`), then `snowflake/01_s3_integration.sql`.
+3. Create a key pair, register the public key on the service user, set `SNOWFLAKE_ACCOUNT`,
+   `SNOWFLAKE_USER`, `SNOWFLAKE_PRIVATE_KEY_PATH`. `uv pip install -e ".[aws,snowflake]"`.
+4. Run `s3-upload --execute`, then `snowflake-sql --execute`, then `dbt build --target snowflake`
+   (port the DuckDB-specific functions first, see architecture.md).
+Expect the first real run to surface syntax or permission errors; none of this has been verified.

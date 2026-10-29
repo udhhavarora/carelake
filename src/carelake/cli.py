@@ -29,6 +29,14 @@ def main(argv: list[str] | None = None) -> int:
     ld = sub.add_parser("load", help="append ingested files to local DuckDB raw schema")
     ld.add_argument("--as-of", help="only partitions with load_date <= YYYY-MM-DD")
     sub.add_parser("dq", help="run data-quality suite; exit 2 if a critical check fails")
+    sf = sub.add_parser(
+        "snowflake-sql", help="print (or with --execute run) RAW-layer Snowflake SQL"
+    )
+    sf.add_argument("--bucket", default=os.environ.get("CARELAKE_S3_BUCKET", "<BUCKET>"))
+    sf.add_argument("--prefix", default=os.environ.get("CARELAKE_S3_PREFIX", "carelake"))
+    sf.add_argument("--execute", action="store_true", help="really run on Snowflake (untested)")
+    up = sub.add_parser("s3-upload", help="plan (or with --execute perform) S3 upload")
+    up.add_argument("--execute", action="store_true", help="really write to S3 (untested)")
     args = p.parse_args(argv)
 
     if args.cmd == "generate":
@@ -44,6 +52,26 @@ def main(argv: list[str] | None = None) -> int:
                 name = f"{res['check_name']} on {res['dataset']}"
                 print(f"  FAIL [{res['severity']}] {name}: {res['details']}")
         return 0 if ok else 2
+    elif args.cmd == "snowflake-sql":
+        from carelake.snowflake.runner import run_statements
+        from carelake.snowflake.sql import render_all
+
+        stmts = render_all(args.bucket, args.prefix, uuid.uuid4().hex[:12])
+        run_statements(stmts, execute=args.execute)
+    elif args.cmd == "s3-upload":
+        from carelake.ingestion.s3_upload import upload
+
+        bucket = os.environ.get("CARELAKE_S3_BUCKET", "")
+        if args.execute and not bucket:
+            raise SystemExit("set CARELAKE_S3_BUCKET before using --execute")
+        print(
+            upload(
+                data_dir,
+                bucket or "<BUCKET>",
+                os.environ.get("CARELAKE_S3_PREFIX", "carelake"),
+                execute=args.execute,
+            )
+        )
     elif args.cmd == "load":
         counts = load_raw(
             data_dir / "ingested",

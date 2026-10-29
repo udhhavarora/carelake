@@ -17,7 +17,7 @@ See [`docs/`](docs/): architecture, data dictionary, design decisions, setup gui
 | DQ framework (38 checks, JSON report, publish gate) | Implemented; unit-tested (4 tests) and run on local data |
 | GitHub Actions workflow (lint, tests, DuckDB pipeline) | Written; **never run on GitHub** (no remote yet). Its script was run locally |
 | Airflow 3.3.2 DAG (retries, DQ gate, as-of backfill, run log) | Run locally via `airflow dags test`; no scheduler/UI/Docker run |
-| S3 upload, Snowflake load | Not started |
+| S3 upload (dry run default), Snowflake RAW DDL/COPY/MERGE renderer, bootstrap SQL | Written; offline-tested only (15 tests total). **Never run against AWS or Snowflake; Snowflake syntax not checked against docs** |
 
 No cloud integration has been executed.
 
