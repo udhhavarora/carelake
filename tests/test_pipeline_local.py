@@ -84,3 +84,22 @@ def test_loader_is_idempotent_and_handles_schema_evolution(tmp_path: Path):
         "select count(*) from raw.encounters where discharge_disposition is null"
     ).fetchone()[0]
     assert "discharge_disposition" in cols and nulls == 40  # batch-1 rows get NULL
+
+
+def test_replaying_only_first_day_still_has_optional_columns(tmp_path: Path):
+    """Backfill to day 1 must not break models that expect later-added columns."""
+    import duckdb
+
+    from carelake.warehouse.local_loader import load_raw
+
+    raw = tmp_path / "raw"
+    write_batches(CFG, raw)
+    ingest(raw, tmp_path, run_id="r1", as_of="2025-01-01")
+    db = tmp_path / "w.duckdb"
+    counts = load_raw(tmp_path / "ingested", db, "l1", as_of="2025-01-01")
+    assert counts["encounters"] == 40
+    cols = [r[0] for r in duckdb.connect(str(db)).execute("describe raw.encounters").fetchall()]
+    assert "discharge_disposition" in cols
+    # then day 2 arrives and is appended without error
+    ingest(raw, tmp_path, run_id="r2", as_of="2025-01-02")
+    assert load_raw(tmp_path / "ingested", db, "l2", as_of="2025-01-02")["encounters"] > 0

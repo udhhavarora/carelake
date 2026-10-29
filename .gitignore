@@ -13,3 +13,5 @@ dbt/dbt_packages/
 logs/
 data/*.duckdb*
 dbt/.user.yml
+.venv-airflow/
+.airflow/

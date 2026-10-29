@@ -13,19 +13,25 @@ from pathlib import Path
 
 import duckdb
 
-from carelake.data_generation.generator import SCHEMAS
+from carelake.data_generation.generator import OPTIONAL_COLUMNS, SCHEMAS
 
 log = logging.getLogger("carelake.loader")
 
 
-def load_raw(ingested_dir: Path, db_path: Path, run_id: str) -> dict[str, int]:
+def load_raw(
+    ingested_dir: Path, db_path: Path, run_id: str, as_of: str | None = None
+) -> dict[str, int]:
     """Append unseen files to raw.<entity>. Returns rows loaded per entity."""
     loaded: dict[str, int] = {}
     con = duckdb.connect(str(db_path))
     try:
         con.execute("create schema if not exists raw")
         for entity in SCHEMAS:
-            files = sorted((ingested_dir / entity).glob("load_date=*/*.csv"))
+            files = sorted(
+                f
+                for f in (ingested_dir / entity).glob("load_date=*/*.csv")
+                if not as_of or f.parent.name.removeprefix("load_date=") <= as_of
+            )
             seen: set[str] = set()
             exists = con.execute(
                 "select count(*) from information_schema.tables "
@@ -74,6 +80,11 @@ def load_raw(ingested_dir: Path, db_path: Path, run_id: str) -> dict[str, int]:
                 ).fetchone()[0]
                 n += rows
                 log.info("loaded %s rows=%d", rel, rows)
+            if entity in _created(con):
+                have = {r[0] for r in con.execute("describe raw." + entity).fetchall()}
+                for c in OPTIONAL_COLUMNS.get(entity, []):
+                    if c not in have:
+                        con.execute(f'alter table raw.{entity} add column "{c}" varchar')
             loaded[entity] = n
     finally:
         con.close()

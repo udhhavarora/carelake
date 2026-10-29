@@ -24,8 +24,10 @@ def main(argv: list[str] | None = None) -> int:
     g = sub.add_parser("generate", help="write deterministic synthetic CSV batches")
     g.add_argument("--seed", type=int, default=42)
     g.add_argument("--start-date", type=date.fromisoformat, default=date(2025, 1, 1))
-    sub.add_parser("ingest", help="validate raw files, quarantine bad rows, update manifest")
-    sub.add_parser("load", help="append ingested files to local DuckDB raw schema")
+    i = sub.add_parser("ingest", help="validate raw files, quarantine bad rows, update manifest")
+    i.add_argument("--as-of", help="only partitions with load_date <= YYYY-MM-DD")
+    ld = sub.add_parser("load", help="append ingested files to local DuckDB raw schema")
+    ld.add_argument("--as-of", help="only partitions with load_date <= YYYY-MM-DD")
     sub.add_parser("dq", help="run data-quality suite; exit 2 if a critical check fails")
     args = p.parse_args(argv)
 
@@ -44,11 +46,14 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if ok else 2
     elif args.cmd == "load":
         counts = load_raw(
-            data_dir / "ingested", data_dir / "carelake.duckdb", uuid.uuid4().hex[:12]
+            data_dir / "ingested",
+            data_dir / "carelake.duckdb",
+            uuid.uuid4().hex[:12],
+            as_of=args.as_of,
         )
         print(f"loaded rows: {counts}")
     else:
-        results = ingest(data_dir / "raw", data_dir)
+        results = ingest(data_dir / "raw", data_dir, as_of=args.as_of)
         bad = [r for r in results if r.status == "rejected"]
         print(f"{len(results)} files processed, {len(bad)} rejected")
         return 1 if bad else 0

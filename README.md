@@ -14,7 +14,8 @@ Work in progress; status below is what has actually been run.
 | dbt on Snowflake (`snowflake` target in `dbt/profiles.yml`) | Written, **never executed** |
 | DQ framework (38 checks, JSON report, publish gate) | Implemented; unit-tested (4 tests) and run on local data |
 | GitHub Actions workflow (lint, tests, DuckDB pipeline) | Written; **never run on GitHub** (no remote yet). Its script was run locally |
-| S3 upload, Snowflake load, Airflow | Not started |
+| Airflow 3.3.2 DAG (retries, DQ gate, as-of backfill, run log) | Run locally via `airflow dags test`; no scheduler/UI/Docker run |
+| S3 upload, Snowflake load | Not started |
 
 No cloud integration has been executed.
 
@@ -57,6 +58,32 @@ Known synthetic-data limitations visible in the marts: the generator assigns dep
 independently of encounter class (so "Emergency" has inpatient stays), and 200 patients with random
 re-visits produce high readmission rates (about 12-32%). These numbers demonstrate the logic, not
 real clinical rates. Readmission definition is documented in `mart_readmission_rate.sql`.
+
+## Orchestration (Airflow, local)
+
+Airflow lives in its own virtualenv (`.venv-airflow`, see `dags/carelake_pipeline.py`); tasks call
+the project venv via subprocess. Installed without Airflow's official constraints file (fine for a
+local demo, not for production).
+
+```bash
+uv venv --python 3.13 .venv-airflow && uv pip install --python .venv-airflow/bin/python apache-airflow -e .
+export AIRFLOW_HOME=$PWD/.airflow AIRFLOW__CORE__LOAD_EXAMPLES=False AIRFLOW__CORE__DAGS_FOLDER=$PWD/dags
+.venv-airflow/bin/airflow db migrate && .venv-airflow/bin/airflow dags reserialize
+.venv-airflow/bin/airflow dags test carelake_pipeline 2025-01-02 --conf '{"fail_once_task":"load"}'
+```
+
+Scenarios actually run (each task attempt is logged to `data/runs/run_log.jsonl`):
+
+| Scenario | Result |
+|---|---|
+| Day 1 then day 2 (`process_date` limits ingestion) | all tasks succeeded, `publish` ran |
+| Day 2 repeated | succeeded, no new rows loaded (file-hash idempotency) |
+| `load` fails on attempt 1 (simulated) | marked `up_for_retry`, attempt 2 succeeded |
+| 3 raw rows deleted before a run | `dbt_build` succeeded, `dq_gate` = `blocked_by_dq`, `publish` not run, no retry |
+| Raw table repaired and rerun | gate passed, `publish` ran |
+
+Typical task times on this laptop (single runs, not a benchmark): `dbt_build` about 6 s, others under 1 s.
+The transient failure is injected by our own code, so it demonstrates the retry mechanism, not a real outage.
 
 ## Data quality gate
 

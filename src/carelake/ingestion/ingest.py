@@ -143,8 +143,20 @@ def load_manifest(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
 
 
-def ingest(raw_dir: Path, work_dir: Path, run_id: str | None = None) -> list[FileResult]:
-    """Ingest every unseen file under ``raw_dir``. Returns one result per file seen."""
+def load_date_of(path: Path) -> str:
+    """Partition value from a ``.../load_date=YYYY-MM-DD/file.csv`` path."""
+    return path.parent.name.removeprefix("load_date=")
+
+
+def ingest(
+    raw_dir: Path, work_dir: Path, run_id: str | None = None, as_of: str | None = None
+) -> list[FileResult]:
+    """Ingest every unseen file under ``raw_dir``. Returns one result per file seen.
+
+    ``as_of`` (YYYY-MM-DD) limits processing to partitions with load_date <= as_of, so a
+    backfill can replay days in order. Because processed files are tracked by hash, running
+    the same day twice is a no-op.
+    """
     run_id = run_id or uuid.uuid4().hex[:12]
     manifest_path = work_dir / "manifest" / "manifest.jsonl"
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -152,6 +164,8 @@ def ingest(raw_dir: Path, work_dir: Path, run_id: str | None = None) -> list[Fil
     results: list[FileResult] = []
     for entity in SCHEMAS:
         for path in sorted((raw_dir / entity).glob("load_date=*/*.csv")):
+            if as_of and load_date_of(path) > as_of:
+                continue
             rel = path.relative_to(raw_dir)
             sha = _sha256(path)
             if sha in done:

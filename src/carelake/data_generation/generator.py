@@ -63,6 +63,8 @@ SCHEMAS: dict[str, list[str]] = {
 }
 # Schema evolution: batch 2 encounters gain this column; earlier files do not have it.
 EVOLVED_ENCOUNTER_COLUMN = "discharge_disposition"
+# Columns added over time; raw tables always carry them (NULL until a file supplies them).
+OPTIONAL_COLUMNS: dict[str, list[str]] = {"encounters": [EVOLVED_ENCOUNTER_COLUMN]}
 DISPOSITIONS = ["home", "transfer", "deceased", "left_against_advice"]
 
 
