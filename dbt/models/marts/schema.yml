@@ -1,0 +1,46 @@
+version: 2
+models:
+  - name: dim_patient
+    description: "Grain: one row per patient_id (current version)."
+    columns:
+      - name: patient_id
+        data_tests: [unique, not_null]
+  - name: dim_facility
+    description: "Grain: one row per facility_id (hospital + department)."
+    columns:
+      - name: facility_id
+        data_tests: [unique, not_null]
+  - name: dim_practitioner
+    columns:
+      - name: practitioner_id
+        data_tests: [unique, not_null]
+  - name: fct_encounter
+    description: >
+      Grain: one row per encounter. Excludes encounters with no matching patient
+      (see quarantine_orphan_encounters). Does not join diagnoses, so metrics cannot double count.
+    columns:
+      - name: encounter_id
+        data_tests: [unique, not_null]
+      - name: patient_id
+        data_tests:
+          - not_null
+          - relationships: {arguments: {to: ref('dim_patient'), field: patient_id}}
+      - name: facility_id
+        data_tests:
+          - relationships: {arguments: {to: ref('dim_facility'), field: facility_id}}
+  - name: quarantine_orphan_encounters
+    description: Encounters referencing a patient that does not exist. Should be empty.
+    data_tests:
+      - must_be_empty:
+          config: {severity: warn}
+  - name: mart_avg_los_by_department
+    description: "Grain: department x discharge month; finished inpatient encounters only."
+    columns:
+      - name: avg_los_days
+        data_tests:
+          - not_null
+  - name: mart_readmission_rate
+    description: "30-day readmission rate by index discharge month. See model header for definition."
+    columns:
+      - name: discharge_month
+        data_tests: [unique, not_null]

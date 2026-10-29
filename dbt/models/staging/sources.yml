@@ -1,0 +1,13 @@
+version: 2
+sources:
+  - name: raw
+    description: Append-only landing tables loaded from ingested source files.
+    schema: raw
+    tables:
+      - name: facilities
+      - name: practitioners
+      - name: patients
+      - name: encounters
+        description: May contain several versions of one encounter_id (corrections).
+      - name: conditions
+      - name: observations

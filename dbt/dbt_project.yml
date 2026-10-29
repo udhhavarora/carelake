@@ -1,0 +1,12 @@
+name: carelake
+version: "0.1.0"
+config-version: 2
+profile: carelake
+model-paths: ["models"]
+test-paths: ["tests"]
+models:
+  carelake:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

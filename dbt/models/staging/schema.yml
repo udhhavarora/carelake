@@ -1,0 +1,33 @@
+version: 2
+models:
+  - name: stg_encounters
+    description: "Typed encounters, latest version per encounter_id. Grain: encounter_id."
+    columns:
+      - name: encounter_id
+        data_tests: [unique, not_null]
+      - name: encounter_class
+        data_tests:
+          - accepted_values: {arguments: {values: [inpatient, emergency, outpatient]}}
+  - name: stg_patients
+    columns:
+      - name: patient_id
+        data_tests: [unique, not_null]
+  - name: stg_conditions
+    columns:
+      - name: condition_id
+        data_tests: [unique, not_null]
+      - name: icd10_code
+        data_tests:
+          - icd10_format
+  - name: stg_facilities
+    columns:
+      - name: facility_id
+        data_tests: [unique, not_null]
+  - name: stg_practitioners
+    columns:
+      - name: practitioner_id
+        data_tests: [unique, not_null]
+  - name: stg_observations
+    columns:
+      - name: observation_id
+        data_tests: [unique, not_null]

@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.env
+*.pem
+data/raw/
+data/quarantine/
+data/manifest/
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+logs/
+data/*.duckdb*
+dbt/.user.yml

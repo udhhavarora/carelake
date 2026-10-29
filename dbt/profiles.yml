@@ -1,0 +1,19 @@
+# No secrets: the DuckDB path and all Snowflake settings come from environment variables.
+# The snowflake target is UNTESTED (no account was available when this was written).
+carelake:
+  target: duckdb
+  outputs:
+    duckdb:
+      type: duckdb
+      path: "{{ env_var('CARELAKE_DATA_DIR', '../data') }}/carelake.duckdb"
+      schema: analytics
+    snowflake:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'CARELAKE_TRANSFORMER') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'CARELAKE_WH') }}"
+      database: CARELAKE
+      schema: ANALYTICS
+      threads: 4
