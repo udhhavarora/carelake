@@ -1,0 +1,468 @@
+{
+  "run_id": "ecd4b1e9e219",
+  "generated_at": "2026-10-29T20:39:38.131685+00:00",
+  "summary": {
+    "total": 38,
+    "passed": 34,
+    "failed_critical": 3,
+    "failed_warning": 1
+  },
+  "results": [
+    {
+      "check_name": "row_count_min",
+      "dataset": "raw.facilities",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "rows": 15,
+        "min": 1
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "schema_consistency",
+      "dataset": "raw.facilities",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "missing": [],
+        "unexpected_new_columns": [
+          "load_date"
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "row_count_min",
+      "dataset": "raw.practitioners",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "rows": 20,
+        "min": 1
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "schema_consistency",
+      "dataset": "raw.practitioners",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "missing": [],
+        "unexpected_new_columns": [
+          "load_date"
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "row_count_min",
+      "dataset": "raw.patients",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "rows": 201,
+        "min": 1
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "schema_consistency",
+      "dataset": "raw.patients",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "missing": [],
+        "unexpected_new_columns": [
+          "load_date"
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "row_count_min",
+      "dataset": "raw.encounters",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "rows": 503,
+        "min": 1
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "schema_consistency",
+      "dataset": "raw.encounters",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "missing": [],
+        "unexpected_new_columns": [
+          "discharge_disposition",
+          "load_date"
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "row_count_min",
+      "dataset": "raw.conditions",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "rows": 982,
+        "min": 1
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "schema_consistency",
+      "dataset": "raw.conditions",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "missing": [],
+        "unexpected_new_columns": [
+          "load_date"
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "row_count_min",
+      "dataset": "raw.observations",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "rows": 1231,
+        "min": 1
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "schema_consistency",
+      "dataset": "raw.observations",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "missing": [],
+        "unexpected_new_columns": [
+          "load_date"
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "duplicate_keys:patient_id",
+      "dataset": "analytics.dim_patient",
+      "passed": false,
+      "severity": "critical",
+      "details": {
+        "duplicate_key_count": 1,
+        "sample": [
+          "PT000005"
+        ]
+      },
+      "result": "fail"
+    },
+    {
+      "check_name": "null_count:patient_id",
+      "dataset": "analytics.dim_patient",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "null_rows": 0
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "duplicate_keys:facility_id",
+      "dataset": "analytics.dim_facility",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "duplicate_key_count": 0,
+        "sample": []
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "null_count:facility_id",
+      "dataset": "analytics.dim_facility",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "null_rows": 0
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "duplicate_keys:practitioner_id",
+      "dataset": "analytics.dim_practitioner",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "duplicate_key_count": 0,
+        "sample": []
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "null_count:practitioner_id",
+      "dataset": "analytics.dim_practitioner",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "null_rows": 0
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "duplicate_keys:encounter_id",
+      "dataset": "analytics.fct_encounter",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "duplicate_key_count": 0,
+        "sample": []
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "null_count:encounter_id",
+      "dataset": "analytics.fct_encounter",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "null_rows": 0
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "null_count:patient_id",
+      "dataset": "analytics.fct_encounter",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "null_rows": 0
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "timestamp_order:start_ts<=end_ts",
+      "dataset": "analytics.fct_encounter",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "violations": 0
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "referential_integrity:patient_id->analytics.dim_patient.patient_id",
+      "dataset": "analytics.stg_encounters",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "violations": 1,
+        "rate": 0.001992,
+        "max_rate": 0.01,
+        "sample": [
+          "PT999999"
+        ]
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "orphan_encounters_present",
+      "dataset": "analytics.stg_encounters",
+      "passed": false,
+      "severity": "warning",
+      "details": {
+        "violations": 1,
+        "action": "routed to analytics.quarantine_orphan_encounters"
+      },
+      "result": "fail"
+    },
+    {
+      "check_name": "referential_integrity:facility_id->analytics.dim_facility.facility_id",
+      "dataset": "analytics.fct_encounter",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "violations": 0,
+        "rate": 0.0,
+        "max_rate": 0.0,
+        "sample": []
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "referential_integrity:encounter_id->analytics.stg_encounters.encounter_id",
+      "dataset": "analytics.stg_conditions",
+      "passed": true,
+      "severity": "warning",
+      "details": {
+        "violations": 0,
+        "rate": 0.0,
+        "max_rate": 0.01,
+        "sample": []
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "reconcile:ingested_clean_rows_vs_raw:facilities",
+      "dataset": "raw.facilities",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "left": 15,
+        "right": 15,
+        "difference": 0,
+        "note": "manifest rows_clean must equal rows loaded into raw"
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "reconcile:ingested_clean_rows_vs_raw:practitioners",
+      "dataset": "raw.practitioners",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "left": 20,
+        "right": 20,
+        "difference": 0,
+        "note": "manifest rows_clean must equal rows loaded into raw"
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "reconcile:ingested_clean_rows_vs_raw:patients",
+      "dataset": "raw.patients",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "left": 201,
+        "right": 201,
+        "difference": 0,
+        "note": "manifest rows_clean must equal rows loaded into raw"
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "reconcile:ingested_clean_rows_vs_raw:encounters",
+      "dataset": "raw.encounters",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "left": 503,
+        "right": 503,
+        "difference": 0,
+        "note": "manifest rows_clean must equal rows loaded into raw"
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "reconcile:ingested_clean_rows_vs_raw:conditions",
+      "dataset": "raw.conditions",
+      "passed": false,
+      "severity": "critical",
+      "details": {
+        "left": 985,
+        "right": 982,
+        "difference": 3,
+        "note": "manifest rows_clean must equal rows loaded into raw"
+      },
+      "result": "fail"
+    },
+    {
+      "check_name": "reconcile:ingested_clean_rows_vs_raw:observations",
+      "dataset": "raw.observations",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "left": 1231,
+        "right": 1231,
+        "difference": 0,
+        "note": "manifest rows_clean must equal rows loaded into raw"
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "reconcile:ingestion_rows_accounted",
+      "dataset": "manifest",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "rows_read": 2959,
+        "clean": 2955,
+        "quarantined": 4
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "reconcile:raw_distinct_keys_vs_staging:encounters",
+      "dataset": "analytics.stg_encounters",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "left": 502,
+        "right": 502,
+        "difference": 0,
+        "note": "raw may hold several versions per key; distinct keys must equal staged rows"
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "reconcile:staging_vs_fact_plus_quarantine:encounters",
+      "dataset": "analytics.fct_encounter",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "left": 502,
+        "right": 502,
+        "difference": 0,
+        "note": "difference must be exactly the quarantined orphans"
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "reconcile:fact_diagnosis_count_vs_conditions",
+      "dataset": "analytics.fct_encounter",
+      "passed": false,
+      "severity": "critical",
+      "details": {
+        "left": 985,
+        "right": 982,
+        "difference": 3,
+        "note": "no double counting: summed diagnosis_count equals joined condition rows"
+      },
+      "result": "fail"
+    },
+    {
+      "check_name": "reconcile:mart_los_encounters_vs_fact",
+      "dataset": "analytics.mart_avg_los_by_department",
+      "passed": true,
+      "severity": "critical",
+      "details": {
+        "left": 183,
+        "right": 183,
+        "difference": 0,
+        "note": ""
+      },
+      "result": "pass"
+    },
+    {
+      "check_name": "historical_stability",
+      "dataset": "analytics.fct_encounter",
+      "passed": true,
+      "severity": "warning",
+      "details": {
+        "baseline_exists": true,
+        "changed_periods": {}
+      },
+      "result": "pass"
+    }
+  ]
+}

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import os
 import uuid
@@ -11,6 +12,7 @@ from pathlib import Path
 
 from carelake.data_generation.generator import GenConfig, write_batches
 from carelake.ingestion.ingest import ingest
+from carelake.quality.suite import run as run_dq
 from carelake.warehouse.local_loader import load_raw
 
 
@@ -24,6 +26,7 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--start-date", type=date.fromisoformat, default=date(2025, 1, 1))
     sub.add_parser("ingest", help="validate raw files, quarantine bad rows, update manifest")
     sub.add_parser("load", help="append ingested files to local DuckDB raw schema")
+    sub.add_parser("dq", help="run data-quality suite; exit 2 if a critical check fails")
     args = p.parse_args(argv)
 
     if args.cmd == "generate":
@@ -31,6 +34,14 @@ def main(argv: list[str] | None = None) -> int:
             GenConfig(seed=args.seed, start_date=args.start_date), data_dir / "raw"
         )
         print(f"wrote {len(files)} files under {data_dir / 'raw'}")
+    elif args.cmd == "dq":
+        report, ok = run_dq(data_dir / "carelake.duckdb", data_dir, uuid.uuid4().hex[:12])
+        print(json.dumps(report["summary"]), "->", "PUBLISH" if ok else "BLOCKED")
+        for res in report["results"]:
+            if res["result"] == "fail":
+                name = f"{res['check_name']} on {res['dataset']}"
+                print(f"  FAIL [{res['severity']}] {name}: {res['details']}")
+        return 0 if ok else 2
     elif args.cmd == "load":
         counts = load_raw(
             data_dir / "ingested", data_dir / "carelake.duckdb", uuid.uuid4().hex[:12]
