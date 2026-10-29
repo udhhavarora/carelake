@@ -13,11 +13,19 @@ Work in progress; status below is what has actually been run.
 | dbt project (6 staging views, 3 dims, 1 fact, orphan quarantine, 2 marts) on DuckDB | `dbt build`: PASS=43 WARN=1 ERROR=0 |
 | dbt on Snowflake (`snowflake` target in `dbt/profiles.yml`) | Written, **never executed** |
 | DQ framework (38 checks, JSON report, publish gate) | Implemented; unit-tested (4 tests) and run on local data |
-| S3 upload, Snowflake load, Airflow, CI | Not started |
+| GitHub Actions workflow (lint, tests, DuckDB pipeline) | Written; **never run on GitHub** (no remote yet). Its script was run locally |
+| S3 upload, Snowflake load, Airflow | Not started |
 
 No cloud integration has been executed.
 
-## Run locally (no cloud access needed)
+## Run everything locally (no cloud access needed)
+
+```bash
+uv venv --python 3.13 && uv pip install -e ".[dev,local]"
+source .venv/bin/activate && scripts/run_local_pipeline.sh
+```
+
+## Run step by step
 
 ```bash
 uv venv --python 3.13 && uv pip install -e ".[dev]"

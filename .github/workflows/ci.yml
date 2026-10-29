@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read   # least privilege: CI only needs to read the repo
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv venv --python 3.13 && uv pip install -e ".[dev,local]"
+      - run: .venv/bin/ruff check .
+      - run: .venv/bin/ruff format --check .
+      - run: .venv/bin/pytest -q
+
+  pipeline-on-duckdb:
+    # Runs the whole pipeline, dbt build and DQ gate on synthetic data.
+    # Needs NO secrets: nothing here talks to AWS or Snowflake.
+    runs-on: ubuntu-latest
+    needs: lint-and-unit-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv venv --python 3.13 && uv pip install -e ".[dev,local]"
+      - run: scripts/run_local_pipeline.sh
+        env:
+          PYTHON: .venv/bin/python
+          DBT: ${{ github.workspace }}/.venv/bin/dbt
+      - uses: actions/upload-artifact@v4
+        if: always()   # keep the DQ report even when the gate blocks, for debugging
+        with:
+          name: dq-report
+          path: data/dq/
