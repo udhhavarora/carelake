@@ -45,7 +45,7 @@ Solid = built and run locally. Dashed = written, never executed. Full detail: [d
 | dbt project (6 staging views, 3 dims, 1 fact, orphan quarantine, 2 marts) on DuckDB | `dbt build`: PASS=43 WARN=1 ERROR=0 |
 | dbt on Snowflake (`snowflake` target in `dbt/profiles.yml`) | Written, **never executed** |
 | DQ framework (38 checks, JSON report, publish gate) | Implemented; unit-tested and run on local data; gate pass and block covered by an end-to-end test |
-| GitHub Actions workflow (lint, tests, DuckDB pipeline) | Written; **never run on GitHub** (no remote yet). Its script was run locally |
+| GitHub Actions workflow (lint, tests, DuckDB pipeline) | Ran green on GitHub on its first run (lint, tests, DuckDB pipeline). Warnings only: Node 20 deprecation, no uv cache key |
 | Airflow 3.3.2 DAG (retries, DQ gate, as-of backfill, run log) | Run locally via `airflow dags test`; no scheduler/UI/Docker run |
 | S3 upload (dry run default), Snowflake RAW DDL/COPY/MERGE renderer, bootstrap SQL | Written; offline-tested only. **Never run against AWS or Snowflake; Snowflake syntax not checked against docs** |
 
@@ -151,7 +151,7 @@ All data is synthetic and FHIR-inspired only, not FHIR conformant.
 
 ## Limitations and next steps
 - Snowflake and S3 code has never run; Snowflake SQL was written from memory without checking the docs and will need fixes on first execution. Some DuckDB-specific functions in the dbt models need porting.
-- CI workflow has not run on GitHub yet; Airflow was exercised with `dags test`, not the scheduler or UI.
+- CI has run once on GitHub (green); Airflow was exercised with `dags test`, not the scheduler or UI.
 - Synthetic data is simplistic (departments independent of encounter class, random re-visits), so the metrics prove the logic, not clinical reality. Not FHIR conformant.
 - Dimensions keep only the current version (no history/SCD2); no incremental dbt models because data volume does not justify them.
 - Next: run the cloud stages with a real account, add a GitHub remote, then optionally a read-only AI assistant over run logs and DQ reports.
