@@ -3,6 +3,8 @@
 Synthetic healthcare data platform: Python → S3 → Snowflake → dbt → Airflow.
 Work in progress; status below is what has actually been run.
 
+See [`docs/`](docs/): architecture, data dictionary, design decisions, setup guide, troubleshooting, demo walkthrough.
+
 ## Status
 
 | Component | State |
